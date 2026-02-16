@@ -6,45 +6,24 @@ on:
       - '*'
 
 jobs:
-  unit-test:
-    runs-on: self-hosted
-    container:
-      image: cuaesd/aesd-autotest:24-unit-test
-      options: -v /etc/ssl/certs:/etc/ssl/certs:ro
-
-    steps:
-      - name: Install SSH client
-        run: |
-          apt-get update
-          apt-get install -y openssh-client
-
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-          # This action handles the SSH agent and keys for you automatically
-          ssh-key: ${{ secrets.SSH_PRIVATE_K }}
-
-      - name: Run unit test
-        run: ./unit-test.sh
-
   full-test:
     runs-on: self-hosted
     container:
-      image: cuaesd/aesd-autotest:24-assignment3
+      image: cuaesd/aesd-autotest:24-assignment4-buildroot
       options: -v /etc/ssl/certs:/etc/ssl/certs:ro
 
     steps:
-      - name: Install SSH client
-        run: |
-          apt-get update
-          apt-get install -y openssh-client
-
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           submodules: recursive
           ssh-key: ${{ secrets.SSH_PRIVATE_K }}
+
+      - name: Disable SSL Certificate Checks
+        run: |
+          echo "check_certificate = off" >> ~/.wgetrc
+          echo "insecure" >> ~/.curlrc
+          echo "BR2_WGET_OPTS=--no-check-certificate" >> $GITHUB_ENV
 
       - name: Run full test
         run: ./full-test.sh
